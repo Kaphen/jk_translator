@@ -1,0 +1,12 @@
+requests~=2.32.3
+Flask~=3.0.3
+pywebio~=1.8.3
+openai==1.14.2
+pdfplumber
+simplejson
+requests
+PyYAML
+pillow
+reportlab
+pandas
+loguru
