@@ -16,11 +16,12 @@ class Writer:
 
     def save_translated_book(self, book: Book, output_file_path: str = None, file_format: str = "PDF"):
         if file_format.lower() == "pdf":
-            self._save_translated_book_pdf(book, output_file_path)
+            output_file_path = self._save_translated_book_pdf(book, output_file_path)
         elif file_format.lower() == "markdown":
-            self._save_translated_book_markdown(book, output_file_path)
+            output_file_path = self._save_translated_book_markdown(book, output_file_path)
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
+        return output_file_path
 
     def _save_translated_book_pdf(self, book: Book, output_file_path: str = None):
         if output_file_path is None:
@@ -34,11 +35,13 @@ class Writer:
         pdfmetrics.registerFont(TTFont("SimSun", font_path))
 
         # Create a new ParagraphStyle with the SimSun font
-        simsun_style = ParagraphStyle('SimSun', fontName='SimSun', fontSize=12, leading=14)
+        simsun_style = ParagraphStyle('SimSun', fontName='SimSun', fontSize=12, leading=14, wordWrap='CJK',
+                                      allowOrphans=1, allowWidows=1)
 
         # Create a PDF document
         doc = SimpleDocTemplate(output_file_path, pagesize=pagesizes.letter)
         styles = getSampleStyleSheet()
+        style = styles['BodyText']
         story = []
 
         # Iterate over the pages and contents
@@ -48,7 +51,7 @@ class Writer:
                     if content.content_type == ContentType.TEXT:
                         # Add translated text to the PDF
                         text = content.translation
-                        para = Paragraph(text, simsun_style)
+                        para = Paragraph(text, style)
                         story.append(para)
 
                     elif content.content_type == ContentType.TABLE:
@@ -75,6 +78,7 @@ class Writer:
         # Save the translated book as a new PDF file
         doc.build(story)
         LOG.info(f"翻译完成: {output_file_path}")
+        return output_file_path
 
     def _save_translated_book_markdown(self, book: Book, output_file_path: str = None):
         if output_file_path is None:
@@ -106,3 +110,4 @@ class Writer:
                     output_file.write('---\n\n')
 
         LOG.info(f"翻译完成: {output_file_path}")
+        return output_file_path
