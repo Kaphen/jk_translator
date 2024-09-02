@@ -1,6 +1,7 @@
 import os
 from time import sleep
 
+import pywebio
 from pywebio import pin
 from pywebio.output import *
 import requests
@@ -21,6 +22,7 @@ class GUI:
         self.uploaded_file = None
 
     def gui_index(self):
+        pywebio.config(title='PDF多语言在线AI翻译器')
         # 添加 Logo
         put_markdown('# PDF多语言在线AI翻译器')
         put_html('<br>')
