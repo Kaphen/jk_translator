@@ -25,4 +25,3 @@ class PDFTranslator:
         output_file_path = self.writer.save_translated_book(self.book, output_file_path, file_format)
         return output_file_path
 
-        self.writer.save_translated_book(self.book, output_file_path, file_format)
