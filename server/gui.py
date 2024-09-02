@@ -35,11 +35,10 @@ class GUI:
         put_scope('loading')
 
         last_model_type = ''
-        # 实时监听输入
+        # openai和glm的配置相关组件随model_type展示
         while True:
             model_type = pin.pin['model_type']
             if last_model_type != model_type:
-                LOG.info(f'last={last_model_type}, current={model_type}')
                 with use_scope('model_config', clear=True):
                     if model_type == 'OpenAIModel':
                         pin.put_select('openai_model_name', label='请选择要使用的OpenAI模型:',
@@ -85,7 +84,7 @@ class GUI:
             # 请求失败则报错
             with use_scope('loading', clear=True):
                 clear('loading')
-                put_text('请求失败，请联系管理员', scope='loading').style(
+                put_text('翻译请求失败，请联系管理员', scope='loading').style(
                     'color: red; font-size: 20px')
 
 
@@ -117,14 +116,19 @@ class GUI:
 
     def polling_get_file(self, i):
         while True:
-            file = self.send_http_request_get_file()
+            status_code, body = self.send_http_request_get_file()
+            if status_code != 200 and status_code != 404:
+                clear('loading')
+                put_text(f'轮询请求失败，请联系管理员\n{body}', scope='loading').style(
+                    'color: red; font-size: 20px')
+                break
             with use_scope('loading', clear=True):
-                if file:
+                if body:
                     put_text('翻译完成！！！请点击下面的文件下载').style('color: green; font-size: 20px')
                     if self.file_format == 'pdf':
-                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.pdf'), file)
+                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.pdf'), body)
                     else:
-                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.md'), file)
+                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.md'), body)
                     break
                 else:
                     sleep(1)
@@ -149,7 +153,7 @@ class GUI:
         }
         LOG.info(f'准备发送请求{url}，data={data}')
         response = requests.post(url, files=files, data=data)
-        LOG.info(f'rode={response.status_code},text={response.text}')
+        LOG.info(f'translate返回rode={response.status_code},text={response.text},file={self.uploaded_file["filename"]}')
         if response.status_code == 200:
             return True
         else:
@@ -161,9 +165,10 @@ class GUI:
         url = 'http://127.0.0.1:8080/api/getFile'
         LOG.info(f'准备发送请求{url}')
         response = requests.get(url)
-        LOG.info(f'rode={response.status_code}')
+        status_code = response.status_code
+        LOG.info(f'getFile返回rode={status_code}')
         if response.status_code == 200:
-            return response.content
+            return status_code, response.content
         else:
-            return None
+            return status_code, response.text
 

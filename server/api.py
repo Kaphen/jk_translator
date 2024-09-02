@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, abort
 from server.translate_task import Translate_Task
 import asyncio
 
@@ -48,16 +48,28 @@ async def translate():
 
 # 翻译任务回调
 def callback(future):
-    global  output_file_path
-    output_file_path = future.result()
-    LOG.info(f'任务执行成功，执行结果返回: {output_file_path}')
+    global output_file_path
+    try:
+        output_file_path = future.result()
+        LOG.info(f'任务执行成功，执行结果返回: {output_file_path}')
+    except Exception as e:
+        print(f'Task raised an exception: {e}')
 
 
 @app.route('/api/getFile', methods=['GET'])
 def getFile():
-    LOG.info(f'output_file_path={output_file_path}')
-    if output_file_path:
-        return send_file(output_file_path, as_attachment=True)
-    else:
-        return jsonify({'error': 'File not found!'}), 400
+    file_path = f'{os.getcwd()}/{output_file_path}'
+    LOG.info(f'尝试获取文件{file_path}')
+    try:
+        if file_path:
+            if not os.path.isfile(file_path):
+                abort(404)
+            return send_file(file_path, as_attachment=True)
+        else:
+            return jsonify({'error': '没有返回文件!'}), 404
+    except FileNotFoundError as e:
+        return jsonify({'error': '文件未找到', 'details': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': '发生错误', 'details': str(e)}), 500
+
 

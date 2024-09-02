@@ -10,3 +10,4 @@ pillow
 reportlab
 pandas
 loguru
+flask[async]
