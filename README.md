@@ -15,7 +15,8 @@
 运行成功后，访问 http://127.0.0.1:8080/ 。web页面如下图：
 <img src="gui截屏.jpeg">
 #### 方式二： 通过http api访问服务
-```
+```bash
+# 触发翻译，response返回翻译后的文件名
 curl -X POST http://127.0.0.1:8080/api/translate \
   -F 'request_type=gui' \
   -F 'target_language=中文' \
@@ -23,6 +24,9 @@ curl -X POST http://127.0.0.1:8080/api/translate \
   -F 'file_formal=pdf' \
   -F 'openai_model_name=ogpt-3.5-turbo' \
   -F 'file=@/xxx/xxx/xxx/test/test.pdf'
+  
+ # 下载翻译后的文件
+curl -X GET -O http://127.0.0.1:8080/api/getFile/${translated_file_name} 
 ```
 #### 方式三： 通过命令行访问服务
 

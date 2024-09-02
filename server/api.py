@@ -43,7 +43,12 @@ async def translate():
                           openai_model_name, None, glm_model_url, 300)
     async_task = asyncio.create_task(task.async_run())
     async_task.add_done_callback(callback)
-    return '触发翻译成功'
+    if file_format == 'pdf':
+        output_file_name = file.filename.replace('.pdf', f'_translated.pdf')
+    else:
+        output_file_name = file.filename.replace('.pdf', f'_translated.md')
+
+    return output_file_name
 
 
 # 翻译任务回调
@@ -56,15 +61,21 @@ def callback(future):
         print(f'Task raised an exception: {e}')
 
 
-@app.route('/api/getFile', methods=['GET'])
-def getFile():
-    file_path = f'{os.getcwd()}/{output_file_path}'
-    LOG.info(f'尝试获取文件{file_path}')
+@app.route('/api/getFile/<string:filename>', methods=['GET'])
+def getFile(filename):
+    jsonify({'message': f'获取文件: {filename}'})
+    if filename:
+        reference_file_path = f'{UPLOAD_FOLDER}/{filename}'
+    else:
+        reference_file_path = output_file_path
+    absolute_file_path = f'{os.getcwd()}/{reference_file_path}'
+
+    LOG.info(f'尝试获取文件{absolute_file_path}')
     try:
-        if file_path:
-            if not os.path.isfile(file_path):
+        if absolute_file_path:
+            if not os.path.isfile(absolute_file_path):
                 abort(404)
-            return send_file(file_path, as_attachment=True)
+            return send_file(absolute_file_path, as_attachment=True)
         else:
             return jsonify({'error': '没有返回文件!'}), 404
     except FileNotFoundError as e:

@@ -71,8 +71,8 @@ class GUI:
                 'color: green; font-size: 20px'),
             put_progressbar('bar')
             set_progressbar('bar', 2 / 10)
-            result = self.send_http_request_triget_translate()
-            print(f'回调函数被调用，接收到结果: {result}')
+            result, output_filename = self.send_http_request_triget_translate()
+            print(f'回调函数被调用，接收到结果: statuscode={result}, 输出文件名={output_filename}')
 
         if result:
             # 请求成功则轮询任务执行结果
@@ -81,7 +81,7 @@ class GUI:
                     'color: green; font-size: 20px'),
                 put_progressbar('bar')
                 set_progressbar('bar', 3 / 10)
-            self.polling_get_file(30)
+            self.polling_get_file(output_filename, 30)
         else:
             # 请求失败则报错
             with use_scope('loading', clear=True):
@@ -116,9 +116,9 @@ class GUI:
             self.glm_model_url = pin.pin['glm_model_url']
 
 
-    def polling_get_file(self, i):
+    def polling_get_file(self, output_filename, i):
         while True:
-            status_code, body = self.send_http_request_get_file()
+            status_code, body = self.send_http_request_get_file(output_filename)
             if status_code != 200 and status_code != 404:
                 clear('loading')
                 put_text(f'轮询请求失败，请联系管理员\n{body}', scope='loading').style(
@@ -128,9 +128,9 @@ class GUI:
                 if body:
                     put_text('翻译完成！！！请点击下面的文件下载').style('color: green; font-size: 20px')
                     if self.file_format == 'pdf':
-                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.pdf'), body)
+                        put_file(output_filename, body)
                     else:
-                        put_file(self.uploaded_file['filename'].replace('.pdf', f'_translated.md'), body)
+                        put_file(output_filename, body)
                     break
                 else:
                     sleep(1)
@@ -157,14 +157,14 @@ class GUI:
         response = requests.post(url, files=files, data=data)
         LOG.info(f'translate返回rode={response.status_code},text={response.text},file={self.uploaded_file["filename"]}')
         if response.status_code == 200:
-            return True
+            return True, response.text
         else:
-            return False
+            return False, None
 
 
-    def send_http_request_get_file(self) :
+    def send_http_request_get_file(self, output_filename) :
         sleep(2)
-        url = 'http://127.0.0.1:8080/api/getFile'
+        url = f'http://127.0.0.1:8080/api/getFile/{output_filename}'
         LOG.info(f'准备发送请求{url}')
         response = requests.get(url)
         status_code = response.status_code
