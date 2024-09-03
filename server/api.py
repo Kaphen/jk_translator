@@ -14,6 +14,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 output_file_path = None
 bp = Blueprint('main', __name__)
 
+@bp.route('/api/probe', methods=['GET'])
+async def probe():
+    return jsonify({'msg': 'helloworld'}), 200
 
 @bp.route('/api/translate', methods=['POST'])
 async def translate():
