@@ -1,5 +1,8 @@
+import asyncio
+
 from model import OpenAIModel
 from translator import PDFTranslator
+from utils import LOG
 
 
 class Translate_Task:
@@ -20,9 +23,11 @@ class Translate_Task:
 
 
     async def async_run(self):
+        LOG.info('开始执行翻译任务')
         model = OpenAIModel(model=self.model_name, api_key=self.api_key)
         translator = PDFTranslator(model)
         output_file_path = translator.translate_pdf(self.pdf_file_path, self.file_format, self.traget_language)
+        LOG.info('翻译任务执行完成')
         return output_file_path
 
 

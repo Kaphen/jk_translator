@@ -47,7 +47,7 @@ async def translate():
         output_file_name = file.filename.replace('.pdf', f'_translated.pdf')
     else:
         output_file_name = file.filename.replace('.pdf', f'_translated.md')
-
+    await asyncio.sleep(10)
     return output_file_name
 
 
@@ -57,8 +57,10 @@ def callback(future):
     try:
         output_file_path = future.result()
         LOG.info(f'任务执行成功，执行结果返回: {output_file_path}')
+    except asyncio.CancelledError:
+        LOG.error('回调中捕获到任务被取消')
     except Exception as e:
-        print(f'Task raised an exception: {e}')
+        LOG.error(f'Task raised an exception: {e}')
 
 
 @app.route('/api/getFile/<string:filename>', methods=['GET'])
@@ -74,7 +76,7 @@ def getFile(filename):
     try:
         if absolute_file_path:
             if not os.path.isfile(absolute_file_path):
-                abort(404)
+                return jsonify({'error': '文件未找到', 'filepath': absolute_file_path}), 404
             return send_file(absolute_file_path, as_attachment=True)
         else:
             return jsonify({'error': '没有返回文件!'}), 404
