@@ -1,6 +1,7 @@
 import os
 
-from flask import Flask, request, jsonify, send_file, abort
+from flask import request, jsonify, send_file, abort, Blueprint
+
 from server.translate_task import Translate_Task
 import asyncio
 
@@ -11,10 +12,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 output_file_path = None
-app = Flask(__name__)
+bp = Blueprint('main', __name__)
 
 
-@app.route('/api/translate', methods=['POST'])
+@bp.route('/api/translate', methods=['POST'])
 async def translate():
     # 获取参数
     request_type = request.form.get('request_type', 'api')
@@ -61,7 +62,7 @@ def callback(future):
         print(f'Task raised an exception: {e}')
 
 
-@app.route('/api/getFile/<string:filename>', methods=['GET'])
+@bp.route('/api/getFile/<string:filename>', methods=['GET'])
 def getFile(filename):
     jsonify({'message': f'获取文件: {filename}'})
     if filename:

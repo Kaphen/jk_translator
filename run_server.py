@@ -1,8 +1,11 @@
+from flask import Flask
 from pywebio.platform.flask import webio_view
 
+from server.api import bp
 from server.gui import GUI
-from server.api import app
 
+app = Flask(__name__)
+app.register_blueprint(bp)
 
 if __name__ == '__main__':
     gui = GUI()
