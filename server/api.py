@@ -78,7 +78,7 @@ def getFile(filename):
     try:
         if absolute_file_path:
             if not os.path.isfile(absolute_file_path):
-                abort(404)
+                return jsonify({'error': '文件未找到', 'filepath': absolute_file_path}), 404
             return send_file(absolute_file_path, as_attachment=True)
         else:
             return jsonify({'error': '没有返回文件!'}), 404
