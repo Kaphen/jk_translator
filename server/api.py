@@ -1,4 +1,5 @@
 import os
+import threading
 
 from flask import request, jsonify, send_file, abort, Blueprint
 
@@ -19,7 +20,7 @@ async def probe():
     return jsonify({'msg': 'helloworld'}), 200
 
 @bp.route('/api/translate', methods=['POST'])
-async def translate():
+def translate():
     # 获取参数
     request_type = request.form.get('request_type', 'api')
     target_language = request.form.get('target_language', 'en')
@@ -45,13 +46,14 @@ async def translate():
     # 触发翻译任务
     task = Translate_Task(request_type, file_path, target_language, model_type, file_format,
                           openai_model_name, None, glm_model_url, 300)
-    async_task = asyncio.create_task(task.async_run())
-    async_task.add_done_callback(callback)
     if file_format == 'pdf':
         output_file_name = file.filename.replace('.pdf', f'_translated.pdf')
     else:
         output_file_name = file.filename.replace('.pdf', f'_translated.md')
-    await asyncio.sleep(10)
+    if os.path.isfile(f'{UPLOAD_FOLDER}/{output_file_name}'):
+        os.remove(f'{UPLOAD_FOLDER}/{output_file_name}')
+    thread = threading.Thread(target=task.async_run)
+    thread.start()
     return output_file_name
 
 

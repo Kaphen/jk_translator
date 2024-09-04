@@ -1,5 +1,3 @@
-import asyncio
-
 from model import OpenAIModel
 from translator import PDFTranslator
 from utils import LOG
@@ -22,7 +20,7 @@ class Translate_Task:
             self.glm_timeout = glm_model_url
 
 
-    async def async_run(self):
+    def async_run(self):
         LOG.info('开始执行翻译任务')
         model = OpenAIModel(model=self.model_name, api_key=self.api_key)
         translator = PDFTranslator(model)

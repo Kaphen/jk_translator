@@ -93,7 +93,6 @@ class GUI:
 
     def check_file(self):
         if self.uploaded_file:
-            LOG.info('打开文件')
             open(f'{ASSET_FOLDER}/{self.uploaded_file["filename"]}', 'wb').write(self.uploaded_file['content'])
             return
         else:
@@ -160,7 +159,7 @@ class GUI:
         }
         LOG.info(f'准备发送请求{url}，data={data}')
         response = requests.post(url, files=files, data=data)
-        LOG.info(f'translate返回rode={response.status_code},text={response.text},file={self.uploaded_file["filename"]}')
+        LOG.info(f'translate接口返回响应：rode={response.status_code},text={response.text},file={self.uploaded_file["filename"]}')
         if response.status_code == 200:
             return True, response.text
         else:
@@ -172,7 +171,7 @@ class GUI:
         LOG.info(f'准备发送请求{url}')
         response = requests.get(url)
         status_code = response.status_code
-        LOG.info(f'getFile返回rode={status_code}')
+        LOG.info(f'getFile接口返回响应：rode={status_code}')
         if response.status_code == 200:
             return status_code, response.content
         else:
