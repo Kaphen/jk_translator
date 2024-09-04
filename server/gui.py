@@ -11,6 +11,7 @@ from utils import LOG
 ASSET_FOLDER = 'asset'  # 你可以根据需要更改此路径
 os.makedirs(ASSET_FOLDER, exist_ok=True)  # 创建目录（如果不存在）
 
+
 class GUI:
 
     def __init__(self):
@@ -58,7 +59,7 @@ class GUI:
             put_text('正在校验请求。。。。。。', scope='loading').style(
                 'color: green; font-size: 20px')
             put_progressbar('bar')
-            set_progressbar('bar', 1 / 10)
+            set_progressbar('bar', 5 / 100)
             err = self.check_parms()
             if err:
                 clear('loading')
@@ -70,7 +71,7 @@ class GUI:
             put_text('正在提交请求。。。。。。', scope='loading').style(
                 'color: green; font-size: 20px'),
             put_progressbar('bar')
-            set_progressbar('bar', 2 / 10)
+            set_progressbar('bar', 10 / 100)
             result, output_filename = self.send_http_request_triget_translate()
             print(f'回调函数被调用，接收到结果: statuscode={result}, 输出文件名={output_filename}')
 
@@ -80,8 +81,8 @@ class GUI:
                 put_text('正在进行文件解析和翻译，请耐心等待10秒至5分钟。。。。。。', scope='loading').style(
                     'color: green; font-size: 20px'),
                 put_progressbar('bar')
-                set_progressbar('bar', 3 / 10)
-            self.polling_get_file(output_filename, 30)
+                set_progressbar('bar', 20 / 100)
+            self.polling_get_file(output_filename, 10, 20)
         else:
             # 请求失败则报错
             with use_scope('loading', clear=True):
@@ -112,11 +113,12 @@ class GUI:
         self.file_format = pin.pin['file_format']
         if self.model_type == 'OpenAIModel':
             self.openai_model_name = pin.pin['openai_model_name']
-        elif  self.model_type == 'GLMModel':
+        elif self.model_type == 'GLMModel':
             self.glm_model_url = pin.pin['glm_model_url']
 
 
-    def polling_get_file(self, output_filename, i):
+    def polling_get_file(self, output_filename, times=30, init_progress=20):
+        progress = init_progress
         while True:
             status_code, body = self.send_http_request_get_file(output_filename)
             if status_code != 200 and status_code != 404:
@@ -124,23 +126,26 @@ class GUI:
                 put_text(f'轮询请求失败，请联系管理员\n{body}', scope='loading').style(
                     'color: red; font-size: 20px')
                 break
-            with use_scope('loading', clear=True):
-                if body:
+            if status_code == 200 and body:
+                with use_scope('loading', clear=True):
                     put_text('翻译完成！！！请点击下面的文件下载').style('color: green; font-size: 20px')
                     if self.file_format == 'pdf':
                         put_file(output_filename, body)
                     else:
                         put_file(output_filename, body)
                     break
-                else:
-                    sleep(1)
-                    i = i < 99 if i + 1 else 99
-                    set_progressbar('bar', i / 100)
-                    if i > 99:
-                        break
+            else:
+                sleep(1)
+                times -= 1
+                progress = progress + 1 if progress < 99 else 99
+                set_progressbar('bar', progress / 100)
+                if times <= 0:
+                    clear('loading')
+                    put_text(f'文件解析或翻译超时，请联系管理员查看错误日志', scope='loading').style(
+                        'color: red; font-size: 20px')
+                    break
 
-
-    def send_http_request_triget_translate(self) :
+    def send_http_request_triget_translate(self):
         data = {
             'request_type': 'gui',
             'target_language': self.target_language,
@@ -161,8 +166,7 @@ class GUI:
         else:
             return False, None
 
-
-    def send_http_request_get_file(self, output_filename) :
+    def send_http_request_get_file(self, output_filename):
         sleep(2)
         url = f'http://127.0.0.1:8080/api/getFile/{output_filename}'
         LOG.info(f'准备发送请求{url}')
@@ -173,4 +177,3 @@ class GUI:
             return status_code, response.content
         else:
             return status_code, response.text
-
