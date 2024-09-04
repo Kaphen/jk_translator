@@ -149,7 +149,7 @@ class GUI:
             'request_type': 'gui',
             'target_language': self.target_language,
             'model_type': self.model_type,
-            'file_formal': self.file_format,
+            'file_format': self.file_format,
             'openai_model_name': self.openai_model_name,
             'glm_model_url': self.glm_model_url
         }
