@@ -35,8 +35,7 @@ class Writer:
         pdfmetrics.registerFont(TTFont("SimSun", font_path))
 
         # Create a new ParagraphStyle with the SimSun font
-        simsun_style = ParagraphStyle('SimSun', fontName='SimSun', fontSize=12, leading=14, wordWrap='CJK',
-                                      allowOrphans=1, allowWidows=1)
+        simsun_style = ParagraphStyle('SimSun', fontName='SimSun', fontSize=12, leading=14)
 
         # Create a PDF document
         doc = SimpleDocTemplate(output_file_path, pagesize=pagesizes.letter)
@@ -51,7 +50,7 @@ class Writer:
                     if content.content_type == ContentType.TEXT:
                         # Add translated text to the PDF
                         text = content.translation
-                        para = Paragraph(text, style)
+                        para = Paragraph(text, simsun_style)
                         story.append(para)
 
                     elif content.content_type == ContentType.TABLE:
